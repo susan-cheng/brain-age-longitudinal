@@ -1,0 +1,7 @@
+**/__pycache__/**/*
+.pytest_cache/**/*
+.vscode/**/*
+pyment.egg-info/**/*
+.coverage
+**/*.nii.gz
+**/*.mgz

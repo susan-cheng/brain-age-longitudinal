@@ -1,0 +1,95 @@
+---
+title: "Create a nice plot for a given setting"
+output:
+  html_document:
+    df_print: paged
+params:
+  name: "SLABS"
+  pre: "ch_"
+  ext: "_pretrained"
+  yvar: "ch_ef"
+  subset: "longitudinal"
+  xlim: NULL
+  ylim: NULL
+  bold_p: TRUE
+---
+
+# Preparation
+
+```{r}
+name <- params$name
+pre <- params$pre
+ext <- params$ext
+yvar <- params$yvar
+subset <- params$subset
+xlim <- params$xlim
+ylim <- params$ylim
+bold_p <- params$bold_p
+```
+
+```{r}
+# check parameters
+stopifnot(name %in% c("EDIS", "SLABS", "GUSTO"))
+stopifnot(pre %in% c("bl_", "ch_"))
+if (!ext %in% c("_pretrained", "_finetuned")) {
+  warning(sprintf(
+    "BAG variable with extension '%s' must be available in the data",
+    ext
+  ))
+}
+```
+
+```{r}
+source("utils.R")
+source("Study.R")
+source(paste0(name, ".R"))
+```
+
+```{r}
+study <- Study(name, subset = subset)
+study <- prepare_for_analysis(study, yvar, pre, ext)
+if (length(study@main_color) == 0) {
+  colors <- get_colors(study@df, study@color_by, study@colors)
+} else {
+  colors <- study@main_color
+}
+```
+
+```{r}
+# different change intervals for SLABS
+if (is(study, "SLABS")) {
+  if (startsWith(yvar, "ch_")) {
+    ylab <- paste(var2name(yvar), "(long-term)")
+  } else if (startsWith(yvar, "future_")) {
+    yvar <- sub("future_", "", yvar)
+    ylab <- paste(var2name(yvar), "(future)")
+  }
+} else {
+  ylab <- NULL
+}
+```
+
+
+# Plot
+
+```{r}
+xvar <- paste0(pre, "BAG", ext)
+covars <- study@covars
+if (pre == "ch_") {
+  covars <- c(covars, paste0("bl_BAG", ext))
+  xlab <- gsub("\\(", "(early, ", var2name(xvar))
+} else {
+  xlab <- NULL
+}
+```
+
+```{r}
+out <- run_model(study@df, xvar, yvar, covars,
+  xlim = xlim, ylim = ylim,
+  xlab = xlab, ylab = ylab, colors = colors
+)
+if (length(study@main_color) == 0) {
+  add_legend(study@legend, study@colors)
+}
+add_text(study@name, study@df, out, bold_p = bold_p)
+```

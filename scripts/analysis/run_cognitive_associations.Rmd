@@ -1,0 +1,88 @@
+---
+title: "Create table of cognitive associations for a given setting"
+output:
+  html_document:
+    df_print: paged
+params:
+  name: "GUSTO"
+  pre: "ch_"
+  ext: "_finetuned"
+  subset: "longitudinal"
+  csv_out_path: "../../output/analysis/cognitive_association_tables/csv"
+---
+
+# Preparation
+
+```{r}
+name <- params$name
+pre <- params$pre
+ext <- params$ext
+subset <- params$subset
+csv_out_path <- params$csv_out_path
+```
+
+```{r}
+# check parameters
+stopifnot(name %in% c("EDIS", "SLABS", "GUSTO"))
+stopifnot(pre %in% c("bl_", "ch_"))
+if (!ext %in% c("_pretrained", "_finetuned")) {
+  warning(sprintf(
+    "BAG variable with extension '%s' must be available in the data",
+    ext
+  ))
+}
+```
+
+```{r}
+source("utils.R")
+source("Study.R")
+source(paste0(name, ".R"))
+```
+
+```{r}
+study <- Study(name, subset = subset)
+res <- list()
+out_file <- file.path(csv_out_path, paste0(
+  name, "_", pre, "BAG", ext, "_",
+  subset, ".csv"
+))
+```
+
+# Run associations
+
+```{r}
+for (i in seq_along(study@yvars)) {
+  yvar <- study@yvars[i]
+  study <- prepare_for_analysis(study, yvar, pre, ext)
+  res <- run_association(study, yvar, pre, ext, res, i)
+}
+
+# correct p-values
+res$p_corr <- p.adjust(res$p, method = "holm")
+```
+
+# Final table
+
+```{r}
+res <- as.data.frame(res)
+column_order <- c("xvar", "yvar", "coef", "p", "p_corr", "delta_R2", "R2")
+res <- res[, column_order]
+xtable::xtable(res)
+```
+
+
+```{r}
+# save as csv
+write.csv(res, out_file)
+```
+
+```{r, comment=NA}
+# print as latex table
+res$coef <- round(res$coef, 4)
+res$p <- format_p(res$p)
+res$p_corr <- format_p(res$p_corr)
+print(xtable::xtable(res, digits = 4),
+  sanitize.text.function = identity,
+  include.rownames = FALSE, hline.after = 0:nrow(res)
+)
+```
