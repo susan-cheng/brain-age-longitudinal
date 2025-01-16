@@ -1,5 +1,8 @@
 # Rate of brain aging associates with future executive function in Asian children and older adults
 
+## Summary (eLife assessment)
+This valuable study marks a significant advancement in brain aging research by centering on Asian populations (Chinese, Malay, and Indian Singaporeans), a group frequently underrepresented in such studies. It unveils solid evidence for anatomical differences in brain aging predictors between the young and old age groups. Overall, this study broadens our understanding of brain aging across diverse ethnicities.
+
 ## Abstract
 Brain age, which uses machine learning to estimate age based on brain features, has emerged as a powerful tool to understand neuroanatomical aging and its link to health outcomes like cognition. However, there remains a lack of studies investigating the rate of brain aging and its relationship to cognition. Furthermore, most brain age models are trained and tested on cross-sectional data from primarily Caucasian, adult participants. It is thus unclear how well these models generalize to non-Caucasian participants, especially children. Here, we tested a previously published deep learning model on Singaporean elderly participants (55 - 88 years old) and children (4 - 11 years old). We found that the model directly generalized to the elderly participants, but model finetuning was necessary for children. After finetuning, we found that the rate of change in brain age gap was associated with future executive function performance in both elderly participants and children. We further found that lateral ventricles and frontal areas contributed to brain age prediction in elderly participants, while white matter and posterior brain regions were more important in predicting brain age of children. Taken together, our results suggest that there is potential for generalizing brain age models to diverse populations. Moreover, the longitudinal change in brain age gap reflects developing and aging processes in the brain, relating to future cognitive function.
 
@@ -250,14 +253,15 @@ We would like to thank all participants and the research teams of GUSTO, EDIS, a
 
 ## Citation
 ```
-@misc{cheng_rate_2024,
-        title = {Rate of brain aging associates with future executive function in Asian children and older adults},
-	doi = {10.1101/2023.11.27.568184},
-	publisher = {bioRxiv},
-	author = {Cheng, Susan F. and Yue, Wan Lin and Ng, Kwun Kei and Qian, Xing and Liu, Siwei and Tan, Trevor W. K. and Nguyen, Kim-Ngan and Leong, Ruth L. F. and Hilal, Saima and Cheng, Ching-Yu and Tan, Ai Peng and Law, Evelyn C. and Gluckman, Peter D. and Chen, Christopher Li-Hsian and Chong, Yap Seng and Meaney, Michael J. and Chee, Michael W. L. and Yeo, B. T. Thomas and Zhou, Juan Helen},
-	year = {2024}
+ @article{Cheng_2024,
+	title={Rate of brain aging associates with future executive function in Asian children and older adults},
+	url={http://dx.doi.org/10.7554/eLife.97036.1},
+	DOI={10.7554/elife.97036.1},
+	publisher={eLife Sciences Publications, Ltd},
+	author={Cheng, Susan F. and Yue, Wan Lin and Ng, Kwun Kei and Qian, Xing and Liu, Siwei and Tan, Trevor W.K. and Nguyen, Kim-Ngan and Leong, Ruth L.F. and Hilal, Saima and Cheng, Ching-Yu and Tan, Ai Peng and Law, Evelyn C. and Gluckman, Peter D. and Chen, Christopher Li-Hsian and Chong, Yap Seng and Meaney, Michael J. and Chee, Michael W.L. and Yeo, B.T. Thomas and Zhou, Juan Helen},
+	year={2024}, month=jun
 }
 ```
 
 ## Bugs and Questions
-Please contact Susan Cheng at sfcheng17@gmail.com and Helen Zhou at helen.zhou@nus.edu.sg.
+Please contact Susan Cheng at susan.cheng@u.nus.edu and Helen Zhou at helen.zhou@nus.edu.sg.

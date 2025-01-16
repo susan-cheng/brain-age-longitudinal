@@ -23,7 +23,7 @@ csv_out_path <- params$csv_out_path
 
 ```{r}
 # check parameters
-stopifnot(name %in% c("EDIS", "SLABS", "GUSTO"))
+stopifnot(name %in% c("EDIS", "SLABS", "GUSTO", "ADNI"))
 stopifnot(pre %in% c("bl_", "ch_"))
 if (!ext %in% c("_pretrained", "_finetuned")) {
   warning(sprintf(
@@ -42,10 +42,12 @@ source(paste0(name, ".R"))
 ```{r}
 study <- Study(name, subset = subset)
 res <- list()
-out_file <- file.path(csv_out_path, paste0(
-  name, "_", pre, "BAG", ext, "_",
-  subset, ".csv"
-))
+if (nchar(csv_out_path) > 0) {
+  out_file <- file.path(csv_out_path, paste0(
+    name, "_", pre, "BAG", ext, "_",
+    subset, ".csv"
+  ))
+}
 ```
 
 # Run associations
@@ -65,7 +67,8 @@ res$p_corr <- p.adjust(res$p, method = "holm")
 
 ```{r}
 res <- as.data.frame(res)
-column_order <- c("xvar", "yvar", "coef", "p", "p_corr", "delta_R2", "R2")
+column_order <- c("xvar", "yvar", "coef", "CI_l", "CI_u", "p", "p_corr",
+                  "delta_R2", "R2")
 res <- res[, column_order]
 xtable::xtable(res)
 ```
@@ -73,15 +76,21 @@ xtable::xtable(res)
 
 ```{r}
 # save as csv
-write.csv(res, out_file)
+if (nchar(csv_out_path) > 0) {
+  write.csv(res, out_file)
+}
 ```
 
 ```{r, comment=NA}
 # print as latex table
-res$coef <- round(res$coef, 4)
+res$beta <- sprintf("\\makecell{%.4f \\\\ (%.2f, %.2f)}",
+                    res$coef, res$CI_l, res$CI_u)
 res$p <- format_p(res$p)
 res$p_corr <- format_p(res$p_corr)
-print(xtable::xtable(res, digits = 4),
+
+column_order <- c("xvar", "yvar", "beta", "p", "p_corr", "delta_R2", "R2")
+res <- res[, column_order]
+print(xtable::xtable(res[, column_order], digits = 4),
   sanitize.text.function = identity,
   include.rownames = FALSE, hline.after = 0:nrow(res)
 )

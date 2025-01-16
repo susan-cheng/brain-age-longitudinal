@@ -34,6 +34,8 @@ Study <- function(name, ...) {
     return(new("SLABS", name = name, ...))
   } else if (name == "GUSTO") {
     return(new("GUSTO", name = name, ...))
+  } else if (name == "ADNI") {
+    return(new("ADNI", name = name, ...))
   } else {
     stop("Unknown study name.")
   }
@@ -112,6 +114,8 @@ setMethod(
     res$xvar[row] <- var2name(xvar)
     res$yvar[row] <- var2name(yvar)
     res$coef[row] <- out$coef
+    res$CI_l[row] <- out$CI_l
+    res$CI_u[row] <- out$CI_u
     res$p[row] <- out$pval
     res$delta_R2[row] <- out$delta_R2
     res$R2[row] <- out$R2

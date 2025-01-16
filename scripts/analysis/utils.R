@@ -102,11 +102,24 @@ compare_predictions <- function(data_T1, ext1, ext2) {
 # run linear regression model
 run_model <- function(df, xvar, yvar, covars = c("chron_age", "sex", "yr_edu"),
                       xlim = NULL, ylim = NULL, xlab = NULL, ylab = NULL,
-                      colors = scales::alpha("blue", 0.75), cex.lab = 1.4) {
+                      colors = scales::alpha("blue", 0.75), cex.lab = 1.4,
+                      remove_outliers = TRUE) {
+  # (extreme) outliers
+  if (remove_outliers) {
+   x = df[[xvar]]
+   Q1 = quantile(x, probs=0.25)
+   Q3 = quantile(x, probs=0.75)
+   lower = Q1-3*IQR(x)
+   upper = Q3+3*IQR(x)
+   df = subset(df, x > lower & x < upper)
+  }
+  
   # run
+  df_scaled <- dplyr::mutate_if(df, is.numeric, scale)
   covars <- paste(covars, collapse = " + ")
   formula <- paste0(yvar, " ~ ", xvar, " + ", covars)
-  model <- lm(as.formula(formula), data = df)
+  model <- lm(as.formula(formula), data = df_scaled)
+  
   print("=== Main model: ===")
   print(summary(model))
   print(regclass::VIF(model))
@@ -121,7 +134,8 @@ run_model <- function(df, xvar, yvar, covars = c("chron_age", "sex", "yr_edu"),
 
   # plot
   par(mar = c(5.1, 4.1, 4.2, 2.1))
-  car::avPlots(model, xvar,
+  model_plot <- lm(as.formula(formula), data = df)
+  car::avPlots(model_plot, xvar,
     id = FALSE, xlim = xlim, ylim = ylim,
     xlab = xlab, ylab = ylab, col = colors, col.lines = "black",
     cex.lab = cex.lab, pch = 19
@@ -129,16 +143,19 @@ run_model <- function(df, xvar, yvar, covars = c("chron_age", "sex", "yr_edu"),
 
   # calculate change in R2
   base_formula <- paste0(yvar, " ~ ", covars)
-  base_model <- lm(as.formula(base_formula), data = df)
+  base_model <- lm(as.formula(base_formula), data = df_scaled)
   print("=== Base model (without variable of interest): ===")
   print(summary(base_model))
   delta_R2 <- summary(model)$adj.r.squared - summary(base_model)$adj.r.squared
 
   # return estimates
   coef <- summary(model)$coefficients[xvar, "Estimate"]
+  CI_l <- confint(model, xvar)[1]
+  CI_u <- confint(model, xvar)[2]
   pval <- summary(model)$coefficients[xvar, "Pr(>|t|)"]
   R2 <- summary(model)$r.squared
-  return(list("coef" = coef, "pval" = pval, "R2" = R2, "delta_R2" = delta_R2))
+  return(list("coef" = coef, "CI_l" = CI_l, "CI_u" = CI_u, 
+              "pval" = pval, "R2" = R2, "delta_R2" = delta_R2))
 }
 
 # return linear regression slopes for each subject
@@ -188,16 +205,17 @@ format_p <- function(pvals) {
 
 # add text to results figure
 add_text <- function(name, data, out, bold_p = FALSE) {
-  p <- toString(signif(out$pval, digits = 3))
+  p <- toString(signif(out$pval, digits = 2))
   if (bold_p) {
     p_str <- bquote(bold(p ~ "=" ~ .(p)))
   } else {
     p_str <- bquote(p ~ "=" ~ .(p))
   }
   mtext(
-    bquote(bold(.(name) * ":") ~ "N =" ~ .(nrow(data)) * "," ~ .(p_str) ~
-             "(\u0394" * R[adj]^2 ~ "=" ~
-             .(format(round(out$delta_R2, 4), nsmall = 4)) * ")"),
+    bquote(bold(.(name) * ":") ~ "N =" ~ .(nrow(data)) * "," ~ 
+             "\u03b2 =" ~ .(format(round(out$coef, 2), nsmall = 2)) * "," ~ 
+             .(p_str) ~ "(\u0394" * R[adj]^2 ~ "=" ~
+             .(format(round(out$delta_R2, 2), nsmall = 2)) * ")"),
     cex = 1.5
   )
 }
@@ -249,6 +267,17 @@ var2name <- function(pred_list) {
       "nepsy_inhibition" = "Future Inhibition (NEPSY-II)",
       "nepsy_switching" = "Future Switching (NEPSY-II)",
       "wcst_tess" = "Future WCST Standard Score",
+      
+      "bl_PHC_MEM" = "Baseline Memory",
+      "bl_PHC_EXF" = "Baseline Executive Function",
+      "bl_PHC_LAN" = "Baseline Language",
+      "bl_PHC_VSP" = "Baseline Visuospatial Function",
+      
+      "future_PHC_MEM" = "Future Memory",
+      "future_PHC_EXF" = "Future Executive Function",
+      "future_PHC_LAN" = "Future Language",
+      "future_PHC_VSP" = "Future Visuospatial Function",
+      
       pred
     )
     pred_names <- c(pred_names, name)

@@ -1,28 +1,33 @@
 ---
-title: "Plot brain age predictions for EDIS, SLABS, and GUSTO"
+title: "Plot brain age predictions"
 output:
   html_document:
     df_print: paged
+params:
+  names:
+    - "EDIS"
+    - "SLABS"
+    - "GUSTO"
 ---
 
 ```{r}
+names <- params$names
 source("utils.R")
 source("Study.R")
-source("EDIS.R")
-source("SLABS.R")
-source("GUSTO.R")
+for (name in names) {
+  source(paste0(name, ".R"))
+}
 ```
 
 # Plots
 
 ```{r}
-names <- c("EDIS", "SLABS", "GUSTO")
 for (name in names) {
   study <- Study(name)
   plot_predictions(study, ext = "_pretrained")
   plot_predictions(study, ext = "_finetuned")
   compare_predictions(study@data_T1, "_pretrained", "_finetuned")
-
+    
   # longitudinal info
   if (study@is_longitudinal) {
     print("# of scans:")
@@ -30,21 +35,20 @@ for (name in names) {
     print("follow-up time:")
     follow_up_time(study@data_T1)
   }
+  
+  # variance by age for GUSTO
+  if(is(study, "GUSTO")) {
+    vars <- c()
+    for (age in c(4.5, 6, 7.5, 10.5)) {
+      tmp <- subset(study@data_T1, age_category == age)
+      vars <- c(vars, var(tmp$pred_age_finetuned))
+    }
+    
+    plot(c(4.5, 6, 7.5, 10.5), vars,
+      pch = 19, col = "blue", cex.lab = 1.25,
+      xlab = "Chronological Age (years)",
+      ylab = "Variance of Predicted Ages"
+    )
+  }
 }
-```
-
-```{r}
-# variance by age for GUSTO
-stopifnot(is(study, "GUSTO"))
-vars <- c()
-for (age in c(4.5, 6, 7.5, 10.5)) {
-  tmp <- subset(study@data_T1, age_category == age)
-  vars <- c(vars, var(tmp$pred_age_finetuned))
-}
-
-plot(c(4.5, 6, 7.5, 10.5), vars,
-  pch = 19, col = "blue", cex.lab = 1.25,
-  xlab = "Chronological Age (years)",
-  ylab = "Variance of Predicted Ages"
-)
 ```
