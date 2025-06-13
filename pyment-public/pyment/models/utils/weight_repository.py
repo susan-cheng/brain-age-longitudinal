@@ -38,7 +38,7 @@ _mapping = {
 
 
 class WeightRepository:
-    root = os.path.join(os.path.expanduser('~'), '.pyment', 'models')
+    root = os.path.join('..', 'weights')
 
     @staticmethod
     def get_path(model: str, weights: str, include_top: bool):
